@@ -3,6 +3,13 @@
   ng-if="hits.length"
   ng-class="{ loading: searchSource.activeFetchCount > 0 }"
 >
+  <div ng-if="hasCommandsAndMultiSelect()">
+    <label>Select all</label>
+    <input type="checkbox" ng-model="dscTableSelectAll" ng-change="setAllSelected(dscTableSelectAll)" />
+    <span>
+      <button class="discover-command-button-bulk" ng-repeat="command in getCommands()" ng-click="executeBulkCommand(command.name)">{{command.label}}</button>
+    </span>
+  </div>
   <div ng-if="!infiniteScroll">
     <div class="kuiBar docTableBar">
       <div class="kuiBarSection">
@@ -100,6 +107,7 @@
         on-add-column="onAddColumn"
         on-change-sort-order="onChangeSortOrder"
         on-remove-column="onRemoveColumn"
+        ng-click="onClickInRow($event, row)"
       ></tr>
     </tbody>
   </table>

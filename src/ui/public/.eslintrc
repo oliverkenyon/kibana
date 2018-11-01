@@ -2,5 +2,5 @@ plugins: [
   '@elastic/eslint-plugin-kibana-custom'
 ]
 rules:
-  no-console: 2
+  no-console: 0
   '@elastic/kibana-custom/no-default-export': error

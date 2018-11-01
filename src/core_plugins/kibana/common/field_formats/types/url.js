@@ -26,7 +26,9 @@ const whitelistUrlSchemes = ['http://', 'https://'];
 const URL_TYPES = [
   { kind: 'a', text: 'Link' },
   { kind: 'img', text: 'Image' },
-  { kind: 'audio', text: 'Audio' }
+  { kind: 'audio', text: 'Audio' },
+  { kind: 'command', text: 'Command' },
+  { kind: 'checkbox', text: 'Checkbox' }
 ];
 const DEFAULT_URL_TYPE = 'a';
 
@@ -118,6 +120,10 @@ export function createUrlFormat(FieldFormat) {
       switch (this.param('type')) {
         case 'audio':
           return `<audio controls preload="none" src="${url}">`;
+        case 'command':
+          return `<button class='discover-command-button' name="${field.name}">${label}</button>`;
+        case 'checkbox':
+          return `<input type='checkbox' class='discover-command-checkbox' />`;
 
         case 'img':
           // If the URL hasn't been formatted to become a meaningful label then the best we can do

@@ -4,6 +4,15 @@ import { getHighlightHtml } from '../../highlight/highlight_html';
 const templateMatchRE = /{{([\s\S]+?)}}/g;
 const whitelistUrlSchemes = ['http://', 'https://'];
 
+const URL_TYPES = [
+  { kind: 'a', text: 'Link' },
+  { kind: 'img', text: 'Image' },
+  { kind: 'audio', text: 'Audio' },
+  { kind: 'command', text: 'Command' },
+  { kind: 'checkbox', text: 'Checkbox' }
+];
+const DEFAULT_URL_TYPE = 'a';
+
 export function createUrlFormat(FieldFormat) {
   class UrlFormat extends FieldFormat {
     constructor(params) {
@@ -13,7 +22,7 @@ export function createUrlFormat(FieldFormat) {
 
     getParamDefaults() {
       return {
-        type: 'a',
+        type: DEFAULT_URL_TYPE,
         urlTemplate: null,
         labelTemplate: null
       };
@@ -77,6 +86,7 @@ export function createUrlFormat(FieldFormat) {
       'unknown',
       'conflict'
     ];
+    static urlTypes = URL_TYPES;
   }
 
   UrlFormat.prototype._convert = {
@@ -91,6 +101,10 @@ export function createUrlFormat(FieldFormat) {
       switch (this.param('type')) {
         case 'audio':
           return `<audio controls preload="none" src="${url}">`;
+        case 'command':
+          return `<button class='discover-command-button' name="${field.name}">${label}</button>`;
+        case 'checkbox':
+          return `<input type='checkbox' class='discover-command-checkbox' />`;
 
         case 'img':
           // If the URL hasn't been formatted to become a meaningful label then the best we can do

@@ -34,6 +34,8 @@ uiModules.get('kibana')
       link: function ($scope, $el) {
         const notify = new Notifier();
 
+        $scope.actionPayloads = {};
+
         $scope.$watch('minimumVisibleRows', (minimumVisibleRows) => {
           $scope.limit = Math.max(minimumVisibleRows || 50, $scope.limit || 50);
         });
@@ -138,6 +140,143 @@ uiModules.get('kibana')
         $scope.shouldShowLimitedResultsWarning = () => (
           !$scope.pager.hasNextPage && $scope.pager.totalItems < $scope.totalHitCount
         );
+
+        $scope.hasCommandsAndMultiSelect = () => {
+
+          let multiSelect = false;
+          let hasCommands = false;
+
+          for (const columnName of $scope.columns) {
+            const columnDetails = _.get($scope, ['indexPattern', 'fields', 'byName', columnName]);
+            const formatType = columnDetails.format.param('type') || '';
+
+            multiSelect = multiSelect || (formatType === 'checkbox');
+            hasCommands = hasCommands || (formatType === 'command');
+
+            if (multiSelect && hasCommands) {
+              return true;
+            }
+          }
+
+          return false;
+        };
+
+
+        $scope.getCommands = () => {
+          // Cache in scope to prevent angular digest iterations error
+          if ($scope.cacheCommands) {
+            return $scope.cacheCommands;
+          }
+
+          const commands = [];
+          for (const columnName of $scope.columns) {
+            const columnDetails = _.get($scope, ['indexPattern', 'fields', 'byName', columnName]);
+            const formatType = columnDetails.format.param('type') || '';
+
+            if (formatType === 'command') {
+              const command = {
+                name: columnName,
+                label: columnDetails.format.convert('text')
+              };
+
+              commands.push(command);
+            }
+          }
+
+          $scope.cacheCommands = commands;
+          return commands;
+        };
+
+        $scope.setAllSelected = (checked) => {
+          const visibleCheckboxes = document.querySelectorAll('input.discover-command-checkbox');
+          visibleCheckboxes && visibleCheckboxes.forEach(checkbox => {
+            checkbox.checked = checked;
+          });
+
+          $scope.actionPayloads = {};
+
+          if (checked) {
+            const commandColumnNames = [];
+            for (const columnName of $scope.columns) {
+              const columnDetails = _.get($scope, ['indexPattern', 'fields', 'byName', columnName]);
+              const formatType = columnDetails.format.param('type') || '';
+
+              if (formatType === 'command') {
+                commandColumnNames.push(columnName);
+                $scope.actionPayloads[columnName] = [];
+              }
+            }
+
+            let index = 0;
+            for (const row of $scope.hits) {
+              for (const columnName of commandColumnNames) {
+                const actionPayload = row.fields[columnName][0];
+                $scope.actionPayloads[columnName].push(actionPayload);
+              }
+
+              index++;
+              if (index > $scope.limit) {
+                break;
+              }
+            }
+          }
+        };
+
+        $scope.executeBulkCommand = (commandName) => {
+          console.info('Bulk command: ' + commandName);
+
+          const payloads = $scope.actionPayloads[commandName];
+          if (payloads) {
+            // Column name is used as the command name, as it gives us guarantee of uniqueness
+            const columnDetails = _.get($scope, ['indexPattern', 'fields', 'byName', commandName]);
+            const urlTemplate = columnDetails.format.param('urlTemplate');
+
+            console.info('Making bulk request using URL template: ' + urlTemplate);
+            console.info('Payload count: ' + payloads.length);
+          }
+        };
+
+        $scope.onClickInRow = (event, row) => {
+          if (event && event.target && event.target.classList.contains('discover-command-button')) {
+            // Button name is set to column name scripted field code
+            const columnName = event.target.name;
+
+            const columnDetails = _.get($scope, ['indexPattern', 'fields', 'byName', columnName]);
+            const urlTemplate = columnDetails.format.param('urlTemplate');
+            const actionPayload = row.fields[columnName][0];
+
+            console.info('Executing command at urlTemplate: ' + urlTemplate + ' with payload: ' + actionPayload);
+
+          }
+          else if (event && event.target && event.target.classList.contains('discover-command-checkbox')) {
+            // the value of each command field will be the thing that is being sent with the command
+            // for that particular row. If we store this, when the bulk action button is clicked, all we need
+            // is to get the template from the field definition, and the list of values.
+            $scope.columns.forEach(columnName => {
+              const columnDetails = _.get($scope, ['indexPattern', 'fields', 'byName', columnName]);
+              const formatType = columnDetails.format.param('type') || '';
+
+              if (formatType === 'command') {
+                const actionPayload = row.fields[columnName][0];
+
+                if (event.target.checked) {
+                  if ($scope.actionPayloads[columnName]) {
+                    $scope.actionPayloads[columnName].indexOf(actionPayload) === -1
+                      && $scope.actionPayloads[columnName].push(actionPayload);
+                  }
+                  else {
+                    $scope.actionPayloads[columnName] = [actionPayload];
+                  }
+                }
+                else {
+                  if ($scope.actionPayloads[columnName]) {
+                    $scope.actionPayloads[columnName] = $scope.actionPayloads[columnName].filter(item => item !== actionPayload);
+                  }
+                }
+              }
+            });
+          }
+        };
       }
     };
   });

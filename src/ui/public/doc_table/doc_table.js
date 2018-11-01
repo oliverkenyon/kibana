@@ -93,6 +93,8 @@ uiModules.get('kibana')
           }
 
           if ($scope.columns.length === 0) $scope.columns.push('_source');
+
+          $scope.resetSelectionsAndColumnCache();
         });
 
         $scope.$watch('searchSource', function () {
@@ -227,12 +229,21 @@ uiModules.get('kibana')
           return commands;
         };
 
-        $scope.setAllSelected = (checked) => {
+        $scope.resetSelectionsAndColumnCache = () => {
+          $scope.setAllCheckboxes(false);
+          $scope.actionPayloads = {};
+          $scope.cacheCommands = null;
+        };
+
+        $scope.setAllCheckboxes = (checked) => {
           const visibleCheckboxes = document.querySelectorAll('input.discover-command-checkbox');
           visibleCheckboxes && visibleCheckboxes.forEach(checkbox => {
             checkbox.checked = checked;
           });
+        };
 
+        $scope.setAllSelected = (checked) => {
+          $scope.setAllCheckboxes(checked);
           $scope.actionPayloads = {};
 
           if (checked) {
@@ -263,8 +274,6 @@ uiModules.get('kibana')
         };
 
         $scope.executeBulkCommand = (commandName) => {
-          console.info('Bulk command: ' + commandName);
-
           const payloads = $scope.actionPayloads[commandName];
           if (payloads) {
             // Column name is used as the command name, as it gives us guarantee of uniqueness

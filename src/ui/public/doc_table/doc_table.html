@@ -3,7 +3,7 @@
   ng-if="hits.length"
   ng-class="{ loading: searchSource.activeFetchCount > 0 }"
 >
-  <div ng-if="hasCommandsAndMultiSelect()">
+  <div class="discover-bulk-command-container" ng-if="hasCommandsAndMultiSelect()">
     <label>Select all</label>
     <input type="checkbox" ng-model="dscTableSelectAll" ng-change="setAllSelected(dscTableSelectAll)" />
     <span>

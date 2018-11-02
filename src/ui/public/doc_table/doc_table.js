@@ -237,6 +237,7 @@ uiModules.get('kibana')
           $scope.rowsSelected = false;
         };
 
+
         $scope.setAllCheckboxes = (checked) => {
           const visibleCheckboxes = document.querySelectorAll('input.discover-command-checkbox');
           visibleCheckboxes && visibleCheckboxes.forEach(checkbox => {
@@ -269,7 +270,7 @@ uiModules.get('kibana')
               }
 
               index++;
-              if (index > $scope.limit) {
+              if (index >= $scope.limit) {
                 break;
               }
             }

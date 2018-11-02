@@ -17,7 +17,9 @@ export function urlEditor() {
       this.urlTypes = [
         { id: 'a', name: 'Link' },
         { id: 'img', name: 'Image' },
-        { id: 'audio', name: 'Audio' }
+        { id: 'audio', name: 'Audio' },
+        { id: 'command', name: 'Command' },
+        { id: 'checkbox', name: 'Checkbox' }
       ];
 
       $scope.$watch('editor.formatParams.type', function (type, prev) {

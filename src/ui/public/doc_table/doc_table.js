@@ -35,6 +35,7 @@ uiModules.get('kibana')
         const notify = new Notifier();
 
         $scope.actionPayloads = {};
+        $scope.rowsSelected = false;
 
         $scope.$watch('minimumVisibleRows', (minimumVisibleRows) => {
           $scope.limit = Math.max(minimumVisibleRows || 50, $scope.limit || 50);
@@ -193,6 +194,7 @@ uiModules.get('kibana')
           $scope.setAllCheckboxes(false);
           $scope.actionPayloads = {};
           $scope.cacheCommands = null;
+          $scope.rowsSelected = false;
         };
 
         $scope.setAllCheckboxes = (checked) => {
@@ -205,6 +207,7 @@ uiModules.get('kibana')
         $scope.setAllSelected = (checked) => {
           $scope.setAllCheckboxes(checked);
           $scope.actionPayloads = {};
+          $scope.rowsSelected = checked;
 
           if (checked) {
             const commandColumnNames = [];
@@ -261,6 +264,7 @@ uiModules.get('kibana')
             // the value of each command field will be the thing that is being sent with the command
             // for that particular row. If we store this, when the bulk action button is clicked, all we need
             // is to get the template from the field definition, and the list of values.
+            let selectionIsNowEmpty = !event.target.checked;
             $scope.columns.forEach(columnName => {
               const columnDetails = _.get($scope, ['indexPattern', 'fields', 'byName', columnName]);
               const formatType = columnDetails.format.param('type') || '';
@@ -283,7 +287,12 @@ uiModules.get('kibana')
                   }
                 }
               }
+
+              selectionIsNowEmpty = selectionIsNowEmpty
+                && (!$scope.actionPayloads[columnName] || $scope.actionPayloads[columnName].length === 0);
             });
+
+            $scope.rowsSelected = !selectionIsNowEmpty;
           }
         };
       }

@@ -7,7 +7,7 @@
     <label>Select all</label>
     <input type="checkbox" ng-model="dscTableSelectAll" ng-change="setAllSelected(dscTableSelectAll)" />
     <span>
-      <button class="discover-command-button-bulk" ng-repeat="command in getCommands()" ng-click="executeBulkCommand(command.name)">{{command.label}}</button>
+      <button ng-if="rowsSelected" class="discover-command-button-bulk" ng-repeat="command in getCommands()" ng-click="executeBulkCommand(command.name)">{{command.label}}</button>
     </span>
   </div>
   <div ng-if="!infiniteScroll">
